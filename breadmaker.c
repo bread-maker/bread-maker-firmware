@@ -111,7 +111,7 @@ ISR(TIMER0_COMP_vect)
 	millis += 2;
 	if (seconds - last_stuff_time < 10)
 	{
-		if ((millis % 300) == 0) update_pwm();
+		if ((millis % 100) == 0) update_pwm();
 	}
 	else {
 		HEATER_OFF; // EMERGENCY!

@@ -44,6 +44,14 @@ uint16_t get_raw_temp()
 	//unset_bit(ADCSRA, ADIF);
 	set_bit(ADCSRA, ADSC);
 	while (!(ADCSRA & (1 << ADIF)));
+	set_bit(ADCSRA, ADSC);
+	while (!(ADCSRA & (1 << ADIF)));
+	set_bit(ADCSRA, ADSC);
+	while (!(ADCSRA & (1 << ADIF)));
+	set_bit(ADCSRA, ADSC);
+	while (!(ADCSRA & (1 << ADIF)));
+	set_bit(ADCSRA, ADSC);
+	while (!(ADCSRA & (1 << ADIF)));
 	return ADC;
 }
 
@@ -206,10 +214,17 @@ void manage_heater()
 	pid_error = target_temperature - current_temperature;
 	dTerm = K2 * PID_Kd * (current_temperature - temp_dState) + K1 * dTerm;
 	temp_dState = current_temperature;
-	if (pid_error > PID_FUNCTIONAL_RANGE) {
+	if (pid_error > PID_FUNCTIONAL_RANGE /*|| ((pid_error > 0) && (target_temperature > PID_FUNCTIONAL_MAX_TEMP))*/) {
 		pid_output = BANG_MAX;
 		pid_reset = true;
 	}
+/*
+	else if (pid_error >= -5 && target_temperature > PID_FUNCTIONAL_MAX_TEMP)
+	{
+		pid_output = BANG_HI;
+		pid_reset = true;
+	}
+*/
 	else if (pid_error < -(PID_FUNCTIONAL_RANGE) || target_temperature == 0) {
 		pid_output = 0;
 		pid_reset = true;
@@ -233,9 +248,9 @@ void manage_heater()
 			if (pid_error < 0) temp_iState -= pid_error; // conditional un-integration
 			pid_output = 0;
 		}
+		pid_output = (int)(pid_output * BANG_MAX / PID_MAX);
 	}
 
 	soft_pwm = current_temperature < MAX_TEMP ? pid_output : 0;
 	if (soft_pwm > BANG_MAX) soft_pwm = BANG_MAX;
-	//printf("Target=%d.%03ld PullUp=%d ADC=0x%03X Res=%06lu PWM=0x%02X->%d Temp=%d.%03ld\r\n", FL(target_temperature), TEMP_PULLUP_IS_ON, temp_raw, temp_res, soft_pwm, HEATER_IS_ON, FL(current_temperature));
 }

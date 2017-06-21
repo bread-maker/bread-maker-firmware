@@ -16,10 +16,9 @@
 #define CLOCK ((PINB>>7)&1)
 
 // Temperature control
-#define PIDTEMP
 #define K1 0.95
 #define K2 (1.0-K1)
-#define PID_FUNCTIONAL_RANGE 5
+#define PID_FUNCTIONAL_RANGE 15
 #define BANG_MAX 0xE0
 #define PID_Kp 48.512
 #define PID_Ki 0.210

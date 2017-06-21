@@ -4,7 +4,7 @@ LFUSE          = BF
 HFUSE          = D9
 MCU_PROGRAMMER = m16
 IP ?= 192.168.3.1
-PASSWORD=breadtime
+PASSWORD ?= breadtime
 
 #MCU_TARGET     = at90s2313
 #MCU_TARGET     = at90s2333
@@ -107,4 +107,4 @@ srec: $(PRG).srec
 	$(OBJCOPY) -j .text -j .data -O binary $< $@
 
 program: hex
-	curl -X POST -F "firmware=@$(PRG).hex" -F "LFUSE=$(LFUSE)" -F "HFUSE=$(HFUSE)" -F "raw=1" --connect-timeout 5 --max-time 60 "http://$(IP)/api/?password=$(PASSWORD)&method=firmware.flash"
+	curl -X POST -F "password=$(PASSWORD)" -F "method=firmware.flash" -F "firmware=@$(PRG).hex" -F "LFUSE=$(LFUSE)" -F "HFUSE=$(HFUSE)" -F "raw=1" --connect-timeout 5 --max-time 60 "http://$(IP)/api/"

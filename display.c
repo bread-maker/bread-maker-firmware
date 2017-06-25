@@ -87,7 +87,7 @@ void show_time()
 void show_time_left()
 {
 	uint32_t value = delayed_secs;
-	value += 59;
+	value += 58;
 	show_hour_min(value / 3600, (value / 60) % 60, half_sec);
 }
 

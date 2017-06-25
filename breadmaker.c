@@ -315,7 +315,7 @@ void baking()
 	if (current_temperature > max_temperature_before_timer) show_error(ERROR_TOO_HOT);
 	display_mode = DISPLAY_RAW;
 	display[0] = display[1] = display[2] = display[3] = 0;
-	beeper_set_freq(1000);
+	beeper_set_freq(1000); // Long beep after program start
 	wdt_reset();
 	_delay_ms(500);
 	beeper_set_freq(0);	
@@ -336,6 +336,10 @@ void baking()
 			do_stuff();
 			_delay_ms(1);
 		}
+		beeper_set_freq(1000); // Short beep after timer
+		wdt_reset();
+		_delay_ms(200);
+		beeper_set_freq(0);	
 	}
 	display[4] = 1 << program_number;
 	for (i = 0; i < baking_stage_count; i++)

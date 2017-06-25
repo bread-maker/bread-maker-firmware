@@ -41,15 +41,7 @@ void update_pwm()
 // Reads ADC
 uint16_t get_raw_temp()
 {
-	//unset_bit(ADCSRA, ADIF);
-	set_bit(ADCSRA, ADSC);
-	while (!(ADCSRA & (1 << ADIF)));
-	set_bit(ADCSRA, ADSC);
-	while (!(ADCSRA & (1 << ADIF)));
-	set_bit(ADCSRA, ADSC);
-	while (!(ADCSRA & (1 << ADIF)));
-	set_bit(ADCSRA, ADSC);
-	while (!(ADCSRA & (1 << ADIF)));
+	unset_bit(ADCSRA, ADIF);
 	set_bit(ADCSRA, ADSC);
 	while (!(ADCSRA & (1 << ADIF)));
 	return ADC;

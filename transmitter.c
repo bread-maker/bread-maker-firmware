@@ -27,7 +27,7 @@ void send_program()
 	tx_str_C(",\"max_temp_b\":");
 	tx_d(max_temperature_before_baking);
 	tx_str_C(",\"stages\":[");
-	uint8_t i;
+	uint8_t i, j;
 	for (i = 0; i < baking_stage_count; i++)
 	{
 		struct baking_stage* cmd = (void*)&baking_program[i];
@@ -38,19 +38,15 @@ void send_program()
 		tx_str_P((char*)motor_state_names[cmd->motor]);
 		tx_str_C("\",\"duration\":");
 		tx_d(cmd->duration);
-		tx_str_C("}");
-	}
-	tx_str_C("],\"beeps\":[");
-	for (i = 0; i < baking_beeps_count; i++)
-	{
-		struct baking_beep* b = (void*)&baking_beeps[i];
-		if (i != 0) tx_byte(',');
-		tx_str_C("{\"stage\":");
-		tx_d(b->stage);
-		tx_str_C(",\"time\":");
-		tx_d(b->time);
-		tx_str_C(",\"count\":");
-		tx_d(b->count);
+		for (j = 0; j < baking_beeps_count; j++)
+		{
+			struct baking_beep* b = (void*)&baking_beeps[j];
+			if (b->stage != i) continue;
+			tx_str_C(",\"beeps\":");
+			tx_d(b->count);
+			tx_str_C(",\"beeps_time\":");
+			tx_d(b->time);
+		}
 		tx_str_C("}");
 	}
 	tx_str_C("],\"warm_temp\":");

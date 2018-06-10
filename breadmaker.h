@@ -53,6 +53,7 @@ extern volatile int8_t warming_temperature;
 extern volatile int16_t warming_max_time;
 extern volatile uint8_t max_temperature_before_timer;
 extern volatile uint8_t max_temperature_before_baking;
+extern volatile uint16_t program_duration[PROGRAM_COUNT];
 
 void do_stuff();
 void show_digit(uint8_t pos, uint8_t digit);

@@ -99,6 +99,12 @@ ISR(USART_RXC_vect)
 			{
 				warming_max_time = argv[1];
 			}
+			// Baking program duration info
+			else if ((strcmp_P((char*)command_buffer, PSTR("DURATION")) == 0) && (argc >= 3))
+			{
+				if (argv[1] < PROGRAM_COUNT)
+					program_duration[argv[1]] = argv[2];
+			}
 			// Baking start
 			else if ((strcmp_P((char*)command_buffer, PSTR("RUN")) == 0) && (argc >= 4))
 			{

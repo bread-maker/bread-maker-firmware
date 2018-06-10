@@ -41,6 +41,7 @@ volatile int8_t warming_temperature = 50;
 volatile int16_t warming_max_time = 10800;
 volatile uint8_t max_temperature_before_timer = 40;
 volatile uint8_t max_temperature_before_baking = 40;
+volatile uint16_t program_duration[PROGRAM_COUNT];
 
 // Must be called at least every second
 void do_stuff()
@@ -171,13 +172,18 @@ void select_program()
 {
 	display_mode = DISPLAY_RAW;
 	display[0] = display[1] = display[2] = display[3] = display[4] = 0;
+	uint8_t i;
 	uint8_t active = 0;
-	int8_t delayed_hours = 0;
-	int8_t delayed_mins = 0;
-	uint8_t show_time = 0;
+	int16_t delayed_mins = 0;
+	uint8_t show_time = 1;
 	uint8_t btn;
 	uint8_t holding = 0;
-	uint32_t timeout = PROGRAM_SELECT_TIMEOUT;
+	uint32_t timeout = 0;
+	for (i = 0; i < PROGRAM_COUNT; i++)
+		program_duration[i] = 0;
+	tx_str_C("DURAT ");
+	tx_d(PROGRAM_COUNT);
+	tx_str_C("\n");
 	while (1)
 	{
 		if (cmd_start) return;
@@ -190,44 +196,29 @@ void select_program()
 			if (btn == BTN_MENU)
 			{
 				program_number++;
-				show_time = 0;
+				show_time = 1;
+				delayed_mins = 0;
 			}
 			if (program_number >= PROGRAM_COUNT)
 				program_number = 0;
 			if (btn == BTN_CRUST)
 			{
-				crust_number++;
+				if (!show_time)
+					crust_number++;
 				show_time = 0;
 			}
 			if (crust_number >= CRUST_COUNT)
 				crust_number = 0;
 			if (btn == BTN_PLUS)
 			{
-				delayed_mins += 1;
-				if (delayed_mins >= 60)
-				{
-					delayed_hours++;
-					delayed_mins = 0;
-				}
-				if (delayed_hours >= MAX_DELAY_HOURS)
-				{
-					delayed_hours = MAX_DELAY_HOURS - 1;
-					delayed_mins = 59;
-				}
+				if (delayed_mins < MAX_DELAY_HOURS*60)
+					delayed_mins += 1;
 				show_time = 1;
 			}
 			if (btn == BTN_MINUS)
 			{
-				delayed_mins -= 1;
-				if (delayed_mins < 0)
-				{
-					delayed_hours--;
-					delayed_mins = 59;
-				}
-				if (delayed_hours < 0)
-				{
-					delayed_hours = delayed_mins = 0;
-				}
+				if (delayed_mins > 0)
+					delayed_mins -= 1;
 				show_time = 1;
 			}
 			if (btn == BTN_START)
@@ -243,10 +234,19 @@ void select_program()
 			display[3] = 0;
 		}
 		else {
-			show_digit(0, delayed_hours / 10);
-			show_digit(1, delayed_hours % 10);
-			show_digit(2, delayed_mins / 10);
-			show_digit(3, delayed_mins % 10);
+			uint16_t duration = program_duration[program_number];
+			if (duration > 0)
+			{
+				show_digit(0, ((delayed_mins+duration) / 600) % 10);
+				show_digit(1, ((delayed_mins+duration) / 60) % 10);
+				show_digit(2, ((delayed_mins+duration) / 10) % 6);
+				show_digit(3, (delayed_mins+duration) % 10);
+			} else {
+				display[0] &= 1;
+				display[1] &= 1;
+				display[2] &= 1;
+				display[3] &= 1;
+			}
 		}
 
 		display[1] |= 1;
@@ -256,7 +256,7 @@ void select_program()
 		if (btn)
 		{
 			uint16_t t = 0;
-			timeout = PROGRAM_SELECT_TIMEOUT;
+			timeout = 0;
 			while ((btn = read_buttons()) != 0)
 			{
 				if ((btn == BTN_MINUS || btn == BTN_PLUS) && (t >= BUTTON_REPEAT_INTERVAL) && holding)
@@ -270,10 +270,11 @@ void select_program()
 				_delay_ms(1);
 				t++;
 			}
-		}
-		else {
+		} else {
 			holding = 0;
-			if (!--timeout) return;
+			timeout++;
+			if (timeout >= CRUST_DISPLAY_TIMEOUT) show_time = 1;
+			if (timeout >= PROGRAM_SELECT_TIMEOUT) return;
 		}
 		active = 1;
 	 	do_stuff();
@@ -283,7 +284,7 @@ void select_program()
 	baking_stage_count = 0;
 	baking_current_stage= 0;
 	cmd_start = 0;
-	delayed_secs = delayed_hours * 3600 + delayed_mins * 60;
+	delayed_secs = delayed_mins * 60;
 
 	tx_str_C("SELCT ");
 	tx_d(program_number);
@@ -332,7 +333,8 @@ void baking()
 			int8_t btn = read_buttons();
 			switch_display_mode(btn);
 			check_cancel_hold(btn);
-			display[4] = half_sec ? 0 : (1 << program_number);
+			if (program_number < PROGRAM_COUNT)
+				display[4] = half_sec ? 0 : (1 << program_number);
 			do_stuff();
 			_delay_ms(1);
 		}
@@ -341,7 +343,8 @@ void baking()
 		_delay_ms(200);
 		beeper_set_freq(0);	
 	}
-	display[4] = 1 << program_number;
+	if (program_number < PROGRAM_COUNT)
+		display[4] = 1 << program_number;
 	for (i = 0; i < baking_stage_count; i++)
 		total_time += baking_program[i].duration;
 	delayed_secs = total_time;
@@ -397,30 +400,36 @@ void baking()
 		do_stuff();
 		_delay_ms(1);
 	}
+	target_temperature = 0;
+	motor_state = MOTOR_STOPPED;
 	//display_mode = DISPLAY_TIME;
 	//display_mode = DISPLAY_TIME_PASSED;
-	display_mode = DISPLAY_TEMPERATURE;
-	target_temperature = warming_temperature;
-	motor_state = MOTOR_STOPPED;
-	delayed_secs = warming_max_time;
-	passed_secs = 0;
-	current_state = STATE_WARMING;
 	tx_str_C("BAKED\n");
 	play_melody();
-	while (delayed_secs)
+	if (warming_temperature && warming_max_time)
 	{
-		int8_t btn = read_buttons();
-		switch_display_mode(btn);
-		if (cmd_abort) return;
-		if (btn == BTN_STOP)
+		display_mode = DISPLAY_TEMPERATURE;
+		target_temperature = warming_temperature;
+		motor_state = MOTOR_STOPPED;
+		delayed_secs = warming_max_time;
+		passed_secs = 0;
+		current_state = STATE_WARMING;
+		while (delayed_secs)
 		{
-			beeper_set_freq(1000);
-			_delay_ms(100);
-			beeper_set_freq(0);
-			return;
+			int8_t btn = read_buttons();
+			switch_display_mode(btn);
+			if (cmd_abort || (btn == BTN_STOP))
+			{
+				cmd_abort = 0;
+				break;
+			}
+			do_stuff();
+			_delay_ms(1);
 		}
-		do_stuff();
-		_delay_ms(1);
+		beeper_set_freq(1000);
+		wdt_reset();
+		_delay_ms(100);
+		beeper_set_freq(0);
 	}
 }
 

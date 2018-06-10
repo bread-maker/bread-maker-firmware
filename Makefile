@@ -3,7 +3,7 @@ OBJ            = breadmaker.o temperature.o usart.o beeper.o receiver.o transmit
 LFUSE          = BF
 HFUSE          = D9
 MCU_PROGRAMMER = m16
-IP ?= 192.168.3.1
+IP ?= 10.13.0.50
 PASSWORD ?= breadtime
 
 #MCU_TARGET     = at90s2313

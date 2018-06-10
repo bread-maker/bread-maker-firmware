@@ -69,6 +69,24 @@ void show_hour_min(uint8_t h, uint8_t m, uint8_t d)
 	}
 }
 
+// Shows specified time, seconds only
+void show_sec(uint8_t s, uint8_t d)
+{
+	display[0] &= 1;
+	display[1] &= 1;
+	show_digit(2, s / 10);
+	show_digit(3, s % 10);
+	if (!d)
+	{
+		display[1] |= 1;
+		display[2] |= 1;
+	}
+	else {
+		display[1] &= ~1;
+		display[2] &= ~1;
+	}
+}
+
 // Shows current time
 void show_time()
 {
@@ -86,9 +104,10 @@ void show_time()
 // Shows time left
 void show_time_left()
 {
-	uint32_t value = delayed_secs;
-	value += 58;
-	show_hour_min(value / 3600, (value / 60) % 60, half_sec);
+	if (delayed_secs >= 60)
+		show_hour_min(delayed_secs / 3600, (delayed_secs / 60) % 60, half_sec);
+	else
+		show_sec(delayed_secs, half_sec);
 }
 
 // Shows time passed

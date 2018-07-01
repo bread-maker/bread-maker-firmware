@@ -47,7 +47,7 @@ volatile uint16_t program_duration[PROGRAM_COUNT];
 void do_stuff()
 {
 	if (seconds - last_stuff_time <= 0) return;
-	wdt_reset();
+	wdt_reset();		
 #ifndef ENABLE_AUTOTUNE
 	manage_heater();
 	send_stats();
@@ -119,7 +119,7 @@ ISR(TIMER0_COMP_vect)
 		motor_state = MOTOR_STOPPED;
 	}
 	if ((millis % 100) == 0) update_motor();
-	if ((millis % 100) == 0) update_time();
+	update_time();
 	update_display();
 }
 
@@ -458,24 +458,28 @@ int main(void)
 	DDRB = 0x1F; // Leds cols => output
 
 	unset_bit(DDRB, 7); set_bit(PORTB, 7); // Clock input
-	//DDRB |= 0xE0; // sck, mosi, miso => output
-	//PORTB &= ~0xE0; // sck, mosi, miso => low
 
 	TCCR0 = (1 << CS00) | (1 << CS02) | (1 << WGM01); // Enable Timer0, prescalex /1024, CTC
 	OCR0 = 15; // Every ~2ms
 	TIMSK |= (1 << OCIE0); //	Timer/Counter0 Compare-Match Interrupt Enable
 
 	tx_str_C("BOOT0\n");
-	uint16_t timeout = 2000;
+	// Waiting for stable clock
+	uint16_t timeout = 1000;
 	uint8_t p = 0;
 	display_mode = DISPLAY_RAW;
+	seconds = 0;
+	uint32_t last_sec = seconds;
 	while (seconds < 5)
 	{
 		wdt_reset();
 		display[p] = 0;
 		p = (p + 1) % 4;
 		display[p] = 2;
-		_delay_ms(50);
+		_delay_ms(100);
+		if (last_sec + 1 < seconds)
+			seconds = 0;
+		last_sec = seconds;
 		if (!--timeout)
 			show_error(ERROR_NO_TICK);
 	}
@@ -493,7 +497,7 @@ int main(void)
 			show_error(ERROR_RESET_COLD_START);
 	}
 	
-	timeout = 25;
+	timeout = 15;
 	while (read_buttons() == BTN_STOP)
 	{
 		display[0] = display[1] = display[2] = display[3] = 2;
@@ -513,9 +517,10 @@ int main(void)
 			_delay_ms(1000);
 			beeper_set_freq(0);
 			tx_str_C("RESET\n");
-			break;
+			while (1) ; // reset
 		}
 	}
+	beeper_set_freq(0);
 
 #ifdef ENABLE_AUTOTUNE
 	display_mode = DISPLAY_TEMPERATURE;

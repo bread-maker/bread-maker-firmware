@@ -47,7 +47,7 @@ volatile uint16_t program_duration[PROGRAM_COUNT];
 void do_stuff()
 {
 	if (seconds - last_stuff_time <= 0) return;
-	wdt_reset();		
+	wdt_reset();
 #ifndef ENABLE_AUTOTUNE
 	manage_heater();
 	send_stats();
@@ -319,7 +319,7 @@ void baking()
 	beeper_set_freq(1000); // Long beep after program start
 	wdt_reset();
 	_delay_ms(500);
-	beeper_set_freq(0);	
+	beeper_set_freq(0);
 	send_program();
 	if (delayed_secs)
 	{
@@ -341,7 +341,7 @@ void baking()
 		beeper_set_freq(1000); // Short beep after timer
 		wdt_reset();
 		_delay_ms(200);
-		beeper_set_freq(0);	
+		beeper_set_freq(0);
 	}
 	if (program_number < PROGRAM_COUNT)
 		display[4] = 1 << program_number;
@@ -352,7 +352,7 @@ void baking()
 	current_state = STATE_BAKING;
 	display_mode = DISPLAY_TIME_LEFT;
 	send_stats();
-	if (current_temperature > max_temperature_before_baking) show_error(ERROR_TOO_HOT);	
+	if (current_temperature > max_temperature_before_baking) show_error(ERROR_TOO_HOT);
 	while (delayed_secs)
 	{
 		if (cmd_abort) return;
@@ -378,7 +378,7 @@ void baking()
 					uint8_t j, n;
 					for (n = 0; n < b->count; n++)
 					{
-					beeper_set_freq(500);						
+					beeper_set_freq(500);
 					for (j = 0; j < 150; j++)
 					{
 						wdt_reset();
@@ -444,7 +444,7 @@ int main(void)
 	unset_bit(PORTD, 5); set_bit(DDRD, 5); // Motor
 	unset_bit(PORTD, 6); set_bit(DDRD, 6); // Heater
 	unset_bit(PORTA, 7); unset_bit(DDRA, 7); // Thermistor (ADC7)
- 
+
 	set_bit(PORTA, 0); unset_bit(DDRA, 0); // Buttons row 1
 	set_bit(PORTA, 1); unset_bit(DDRA, 1); // Buttons row 2
 	set_bit(PORTA, 2); unset_bit(DDRA, 2); // Buttons row 3
@@ -484,7 +484,7 @@ int main(void)
 			show_error(ERROR_NO_TICK);
 	}
 	tx_str_C("BOOT1\n");
-	
+
 	if (!eeprom_read_byte(EEPROM_ADDR_WAS_IDLE))
 	{
 		if (MCUCSR & (1<<WDRF))
@@ -496,13 +496,13 @@ int main(void)
 		else if (MCUCSR & (1<<PORF))
 			show_error(ERROR_RESET_COLD_START);
 	}
-	
+
 	timeout = 15;
 	while (read_buttons() == BTN_STOP)
 	{
 		display[0] = display[1] = display[2] = display[3] = 2;
 		beeper_set_freq(500);
-		_delay_ms(100);		
+		_delay_ms(100);
 		display[0] = display[1] = display[2] = display[3] = 0;
 		beeper_set_freq(100);
 		_delay_ms(100);
@@ -568,4 +568,3 @@ int main(void)
 	}
 	return 0;
 }
-

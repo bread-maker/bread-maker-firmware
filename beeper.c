@@ -114,7 +114,7 @@ const uint16_t PROGMEM note_freqs[] = {
 	NOTE_FREQ_D8,
 	NOTE_FREQ_D8S
 };
- 
+
 
 // Mario main theme melody
 const uint8_t PROGMEM melody[] = {
@@ -122,22 +122,22 @@ const uint8_t PROGMEM melody[] = {
 	0, NOTE_C5, NOTE_E5, 0,
 	NOTE_G5, 0, 0,	0,
 	NOTE_G4, 0, 0, 0,
- 
+
 	NOTE_C5, 0, 0, NOTE_G4,
 	0, 0, NOTE_E4, 0,
 	0, NOTE_A4, 0, NOTE_B4,
 	0, NOTE_A4S, NOTE_A4, 0,
- 
+
 	NOTE_G4, NOTE_E5, NOTE_G5,
 	NOTE_A5, 0, NOTE_F5, NOTE_G5,
 	0, NOTE_E5, 0, NOTE_C5,
 	NOTE_D5, NOTE_B4, 0, 0,
- 
+
 	NOTE_C5, 0, 0, NOTE_G4,
 	0, 0, NOTE_E4, 0,
 	0, NOTE_A4, 0, NOTE_B4,
 	0, NOTE_A4S, NOTE_A4, 0,
- 
+
 	NOTE_G4, NOTE_E5, NOTE_G5,
 	NOTE_A5, 0, NOTE_F5, NOTE_G5,
 	0, NOTE_E5, 0, NOTE_C5,
@@ -150,22 +150,22 @@ const uint8_t PROGMEM tempo[] = {
 	12, 12, 12, 12,
 	12, 12, 12, 12,
 	12, 12, 12, 12,
- 
+
 	12, 12, 12, 12,
 	12, 12, 12, 12,
 	12, 12, 12, 12,
 	12, 12, 12, 12,
- 
+
 	9, 9, 9,
 	12, 12, 12, 12,
 	12, 12, 12, 12,
 	12, 12, 12, 12,
- 
+
 	12, 12, 12, 12,
 	12, 12, 12, 12,
 	12, 12, 12, 12,
 	12, 12, 12, 12,
- 
+
 	9, 9, 9,
 	12, 12, 12, 12,
 	12, 12, 12, 12,
@@ -187,19 +187,19 @@ void play_melody()
 {
 	int note;
 	int size = sizeof(melody) / sizeof(uint8_t);
-	for (note = 0; note < size; note++) { 
+	for (note = 0; note < size; note++) {
 		// to calculate the note duration, take one second
 		// divided by the note type.
 		//e.g. quarter note = 1000 / 4, eighth note = 1000/8, etc.
 		int noteDuration = 600 / pgm_read_byte(&tempo[note]);
 		beeper_set_freq(pgm_read_word(&note_freqs[pgm_read_byte(&melody[note])]));
-		if (delay(noteDuration)) break; 
+		if (delay(noteDuration)) break;
 		beeper_set_freq(0);
 		// to distinguish the notes, set a minimum time between them.
 		// the note's duration + 30% seems to work well:
 		int pauseBetweenNotes = noteDuration * 1.30;
 		if (delay(pauseBetweenNotes)) break;
-		//if (delay(noteDuration)) break; 
+		//if (delay(noteDuration)) break;
 	}
 	beeper_set_freq(0);
 }

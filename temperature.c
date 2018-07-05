@@ -1,3 +1,5 @@
+// Partically based on temperature.cpp from Marlin project: https://github.com/MarlinFirmware/Marlin/
+
 #include "defines.h"
 #include "bits.h"
 #include "temptable.h"

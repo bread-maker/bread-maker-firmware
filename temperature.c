@@ -108,7 +108,7 @@ void PID_autotune(float temp, int ncycles)
 		uint32_t ms = millis;
 
 		_delay_ms(1000);
-		current_temperature = get_temp();		
+		current_temperature = get_temp();
 		if (1) { // temp sample ready
 			input = get_temp();
 

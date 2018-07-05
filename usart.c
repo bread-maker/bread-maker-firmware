@@ -60,4 +60,3 @@ void USART_init(void)
 	UCSRB = _BV(TXEN) | _BV(RXEN) | _BV(RXCIE); /* tx/rx enable */
 	UCSRC |= _BV(UMSEL);
 }
-

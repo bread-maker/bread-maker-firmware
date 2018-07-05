@@ -80,7 +80,7 @@ $(PRG).elf: $(OBJ)
 breadmaker.o: *.h
 
 clean:
-	rm -rf *.o $(PRG).elf *.eps *.png *.pdf *.bak 
+	rm -rf *.o $(PRG).elf *.eps *.png *.pdf *.bak
 	rm -rf *.lst *.map $(EXTRA_CLEAN_FILES)
 	rm -f $(PRG).hex $(PRG).bin $(PRG).srec $(PRG)_eeprom.hex $(PRG)_eeprom.bin $(PRG)_eeprom.srec
 
